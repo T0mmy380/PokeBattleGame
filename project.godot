@@ -11,5 +11,12 @@ config_version=5
 [application]
 
 config/name="PokeBattleGame"
+run/main_scene="uid://dki45g2fj6ep"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
+
+[global_group]
+
+nav_layer="Ground layer - walkable tiles"
+wall_layer="Layer for walls, obstructions"
+toptop_layer=""

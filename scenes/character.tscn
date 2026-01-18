@@ -782,9 +782,10 @@ script = ExtResource("1_lrhn5")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Greninja"]
 sprite_frames = SubResource("SpriteFrames_lrhn5")
+animation = &"walk_down"
+frame_progress = 0.732768
 offset = Vector2(-0.5, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Greninja"]
-visible = false
 position = Vector2(0, 2)
 shape = SubResource("RectangleShape2D_my7n2")

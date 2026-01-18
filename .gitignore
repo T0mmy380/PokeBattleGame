@@ -3,3 +3,7 @@
 /android/
 .vscode/
 .import/
+.export/
+.builds/
+*.exe
+*.pck

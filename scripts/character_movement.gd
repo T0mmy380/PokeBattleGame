@@ -2,29 +2,113 @@ extends CharacterBody2D
 
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 
-const SPEED = 150.0
-#const JUMP_VELOCITY = -400.0
+const SPEED := 150.0
 
 var last_direction: Vector2 = Vector2.DOWN
 
+var is_jumping := false
+var jump_timer := 0.0
+var jump_total := 0.0
+var jump_anim_name := ""
 
-func _physics_process(_delta: float) -> void:
-	"""
-	# Handle jump.
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-	"""
+func _physics_process(delta: float) -> void:
+	process_jump(delta)
 	process_movement()
 	process_animation()
 	move_and_slide()
 
 # ------------------------------------------------------------------------------
+# JUMP
+# ------------------------------------------------------------------------------
+
+func process_jump(delta: float) -> void:
+	# Start jump
+	if not is_jumping and Input.is_action_just_pressed("ui_accept"):
+		start_jump()
+
+	if is_jumping:
+		# While jumping: if direction changes, switch jump anim to match
+		var dir := Input.get_vector("left", "right", "up", "down")
+		if dir != Vector2.ZERO:
+			last_direction = dir
+			var desired := get_anim_name("hop", dir)
+			if desired != jump_anim_name:
+				switch_jump_anim_preserve_progress(desired)
+
+		# Count down jump time
+		jump_timer -= delta
+		if jump_timer <= 0.0:
+			end_jump()
+
+func start_jump() -> void:
+	is_jumping = true
+
+	var dir := Input.get_vector("left", "right", "up", "down")
+	if dir == Vector2.ZERO:
+		dir = last_direction
+	else:
+		last_direction = dir
+
+	jump_anim_name = get_anim_name("hop", dir)
+
+	animated_sprite_2d.play(jump_anim_name)
+	animated_sprite_2d.sprite_frames.set_animation_loop(jump_anim_name, false)
+
+	jump_total = get_anim_length_seconds(jump_anim_name)
+	jump_timer = jump_total
+
+func switch_jump_anim_preserve_progress(new_anim: String) -> void:
+	# Progress through jump (0..1)
+	var t := 0.0
+	if jump_total > 0.0:
+		t = clamp(1.0 - (jump_timer / jump_total), 0.0, 1.0)
+
+	jump_anim_name = new_anim
+
+	# Play the new directional jump anim (no looping)
+	animated_sprite_2d.play(jump_anim_name)
+	animated_sprite_2d.sprite_frames.set_animation_loop(jump_anim_name, false)
+
+	# Set frame to match the same progress through the animation
+	var frames := animated_sprite_2d.sprite_frames.get_frame_count(jump_anim_name)
+	if frames <= 1:
+		animated_sprite_2d.frame = 0
+		animated_sprite_2d.frame_progress = 0.0
+		return
+
+	var frame_f := t * float(frames - 1)
+	var frame_i := int(floor(frame_f))
+	animated_sprite_2d.frame = clamp(frame_i, 0, frames - 1)
+	animated_sprite_2d.frame_progress = clamp(frame_f - float(frame_i), 0.0, 1.0)
+
+func end_jump() -> void:
+	is_jumping = false
+
+	# Land on last frame
+	var frames := animated_sprite_2d.sprite_frames.get_frame_count(jump_anim_name)
+	animated_sprite_2d.frame = max(frames - 1, 0)
+	animated_sprite_2d.frame_progress = 0.0
+	animated_sprite_2d.stop()
+
+func get_anim_length_seconds(anim_name: String) -> float:
+	if animated_sprite_2d.sprite_frames == null:
+		return 0.0
+	if not animated_sprite_2d.sprite_frames.has_animation(anim_name):
+		return 0.0
+
+	var frames := animated_sprite_2d.sprite_frames.get_frame_count(anim_name)
+	var fps := animated_sprite_2d.sprite_frames.get_animation_speed(anim_name)
+	if fps <= 0.0:
+		return 0.0
+
+	return float(frames) / float(fps)
+
+# ------------------------------------------------------------------------------
 # MOVEMENT & ANIMATION
 # ------------------------------------------------------------------------------
 
-# Process movement input and update velocity.
 func process_movement() -> void:
-	# Get the input direction and handle the movement/deceleration.
+	# Allow movement during jump (change if you want it locked)
 	var direction := Input.get_vector("left", "right", "up", "down")
 
 	if direction != Vector2.ZERO:
@@ -33,28 +117,44 @@ func process_movement() -> void:
 	else:
 		velocity = Vector2.ZERO
 
-# Process animation based on movement state.
 func process_animation() -> void:
-	if velocity != Vector2.ZERO:
-		play_animation("walk", last_direction)
-	else:
-		play_animation("idle", last_direction)
+	# Jump has priority; do not play walk/idle during jump
+	if is_jumping:
+		return
 
-# Play animation based on direction.
-func play_animation(prefix: String, dir: Vector2) -> void:
-	if dir.x > 0 and dir.y > 0:
-		animated_sprite_2d.play(prefix + "_down_right")  # Diagonal down-right
-	elif dir.x > 0 and dir.y < 0:
-		animated_sprite_2d.play(prefix + "_up_right")  # Diagonal up-right
-	elif dir.x < 0 and dir.y > 0:
-		animated_sprite_2d.play(prefix + "_down_left")  # Diagonal down-left
-	elif dir.x < 0 and dir.y < 0:
-		animated_sprite_2d.play(prefix + "_up_left")  # Diagonal up-left
-	elif dir.x > 0:
-		animated_sprite_2d.play(prefix + "_right")
-	elif dir.x < 0:
-		animated_sprite_2d.play(prefix + "_left")
-	elif dir.y > 0:
-		animated_sprite_2d.play(prefix + "_down")
-	elif dir.y < 0:
-		animated_sprite_2d.play(prefix + "_up")
+	if velocity != Vector2.ZERO:
+		animated_sprite_2d.play(get_anim_name("walk", last_direction))
+	else:
+		animated_sprite_2d.play(get_anim_name("idle", last_direction))
+
+# ------------------------------------------------------------------------------
+# ANIMATION NAME HELPERS
+# ------------------------------------------------------------------------------
+
+func get_anim_name(prefix: String, dir: Vector2) -> String:
+	# stable 8-dir resolution (reduces diagonal flicker)
+	var x := 0
+	var y := 0
+	if dir.x > 0.1: x = 1
+	elif dir.x < -0.1: x = -1
+	if dir.y > 0.1: y = 1
+	elif dir.y < -0.1: y = -1
+
+	if x == 1 and y == 1:
+		return prefix + "_down_right"
+	elif x == 1 and y == -1:
+		return prefix + "_up_right"
+	elif x == -1 and y == 1:
+		return prefix + "_down_left"
+	elif x == -1 and y == -1:
+		return prefix + "_up_left"
+	elif x == 1:
+		return prefix + "_right"
+	elif x == -1:
+		return prefix + "_left"
+	elif y == 1:
+		return prefix + "_down"
+	elif y == -1:
+		return prefix + "_up"
+
+	return prefix + "_down"

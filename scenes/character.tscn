@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://dejbyeqj3niaa"]
+
+[ext_resource type="Texture2D" uid="uid://riu55mjx0aka" path="res://assets/characters/pokemon/greninja/sprites/Idle-Anim.png" id="1_agfs1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rkhd4"]
+atlas = ExtResource("1_agfs1")
+region = Rect2(0, 0, 32, 56)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lrhn5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rkhd4")
+}],
+"loop": true,
+"name": &"default",
+"speed": 0.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_my7n2"]
+size = Vector2(20, 8)
+
+[node name="Character" type="Node2D"]
+
+[node name="Greninja" type="CharacterBody2D" parent="."]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Greninja"]
+sprite_frames = SubResource("SpriteFrames_lrhn5")
+offset = Vector2(-0.5, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Greninja"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_my7n2")

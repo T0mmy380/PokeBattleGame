@@ -20,3 +20,7 @@ config/icon="res://icon.svg"
 nav_layer="Ground layer - walkable tiles"
 wall_layer="Layer for walls, obstructions"
 toptop_layer=""
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0

@@ -15,6 +15,10 @@ run/main_scene="uid://dki45g2fj6ep"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
+[display]
+
+window/subwindows/embed_subwindows=false
+
 [global_group]
 
 nav_layer="Ground layer - walkable tiles"

@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
+@onready var character_selector_ui: Node2D = $"../Character Selector UI"
 
 const SPEED := 100.0
 
@@ -11,8 +12,9 @@ var jump_timer := 0.0
 var jump_total := 0.0
 var jump_anim_name := ""
 
+
 func _ready() -> void:
-	set_character_by_name("greninja")
+	pass
 
 
 func _physics_process(delta: float) -> void:
@@ -167,6 +169,7 @@ func get_anim_name(prefix: String, dir: Vector2) -> String:
 var current_dir := "s"
 
 func set_character_by_name(char_name: String) -> void:
+	print("set_character_by_name called with: %s" % char_name)
 	var animFrames_path := "res://assets/characters/pokemon/%s/sprites/anims/%s_frames.tres" % [char_name, char_name]
 	var animFrames := load(animFrames_path) as SpriteFrames
 	print("Loaded SpriteFrames at path: %s" % animFrames_path)
@@ -177,3 +180,24 @@ func set_character_by_name(char_name: String) -> void:
 	
 	animated_sprite_2d.sprite_frames = animFrames
 	
+# ------------------------------------------------------------------------------
+# CHARACTER SELECTOR
+# ------------------------------------------------------------------------------
+func _unhandled_input(event):
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_ENTER:
+			character_selector_ui.popup.show()
+
+
+
+		'''
+		if event.keycode == KEY_1:
+			set_character_by_name("greninja")
+			print("Character set to Greninja")
+		elif event.keycode == KEY_2:
+			set_character_by_name("golurk")
+			print("Character set to Golurk")
+		elif event.keycode == KEY_3:
+			set_character_by_name("scolipede")
+			print("Character set to Scolipede")
+		'''

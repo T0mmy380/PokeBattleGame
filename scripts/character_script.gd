@@ -1,9 +1,8 @@
 extends CharacterBody2D
 
-#@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
-@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D_Random
+@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 
-const SPEED := 150.0
+const SPEED := 100.0
 
 var last_direction: Vector2 = Vector2.DOWN
 
@@ -13,7 +12,7 @@ var jump_total := 0.0
 var jump_anim_name := ""
 
 func _ready() -> void:
-	set_character_by_name("golurk")
+	set_character_by_name("greninja")
 
 
 func _physics_process(delta: float) -> void:
@@ -21,6 +20,7 @@ func _physics_process(delta: float) -> void:
 	process_movement()
 	process_animation()
 	move_and_slide()
+
 
 # ------------------------------------------------------------------------------
 # JUMP
@@ -164,30 +164,16 @@ func get_anim_name(prefix: String, dir: Vector2) -> String:
 
 	return prefix + "_down"
 
-
-
 var current_dir := "s"
 
 func set_character_by_name(char_name: String) -> void:
-	'''
-	var sprite_path := "res://assets/characters/pokemon/%s/sprites/SPRITE.png" % [char_name]
-	var sprite := load(sprite_path) as Texture2D
-	sprite.get_size()
-	push_error("Loaded sprite size: %s" % str(sprite.get_size()))
-
-	if sprite == null:
-		push_error("Failed to load Texture2D at path: %s" % sprite_path)
-		return
-	'''
 	var animFrames_path := "res://assets/characters/pokemon/%s/sprites/anims/%s_frames.tres" % [char_name, char_name]
 	var animFrames := load(animFrames_path) as SpriteFrames
-	push_error("Loaded SpriteFrames at path: %s" % animFrames_path)
+	print("Loaded SpriteFrames at path: %s" % animFrames_path)
 
 	if animFrames == null:
 		push_error("Failed to load SpriteFrames at path: %s" % animFrames_path)
 		return
 	
-	
-	#sprite_2d.texture = sprite
 	animated_sprite_2d.sprite_frames = animFrames
 	

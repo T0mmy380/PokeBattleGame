@@ -1,8 +1,8 @@
 extends Node2D
 
 @onready var character: Node2D = $"../Pokemon"
-@onready var popup: Window = $Window
-@onready var text_feild: LineEdit = $"Window/Text Feild"
+@onready var popup: PopupPanel = $"Selector Window/UI/Selector Popup"
+@onready var text_feild: LineEdit = $"Selector Window/UI/Selector Popup/VBoxContainer/Text Feild"
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:

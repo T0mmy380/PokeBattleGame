@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=4 uid="uid://dki45g2fj6ep"]
+[gd_scene load_steps=5 format=4 uid="uid://dki45g2fj6ep"]
 
 [ext_resource type="Texture2D" uid="uid://bbi03graer77f" path="res://assets/tilesets/Outside.png" id="1_4xfga"]
 [ext_resource type="PackedScene" uid="uid://dejbyeqj3niaa" path="res://scenes/character.tscn" id="2_paxxb"]
-[ext_resource type="PackedScene" uid="uid://pv8ygpbotrno" path="res://scenes/character_selector_ui.tscn" id="3_gldc4"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_paxxb"]
 texture = ExtResource("1_4xfga")
@@ -129,8 +128,6 @@ tile_set = SubResource("TileSet_gldc4")
 [node name="Character" parent="TileMap" instance=ExtResource("2_paxxb")]
 position = Vector2(-33, 1)
 scale = Vector2(1.5, 1.5)
-
-[node name="Character Selector UI" parent="TileMap/Character" instance=ExtResource("3_gldc4")]
 
 [node name="Toptop Layer" type="TileMapLayer" parent="TileMap" groups=["toptop_layer"]]
 z_index = 1

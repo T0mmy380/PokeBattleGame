@@ -2,7 +2,7 @@ extends CharacterBody2D
 
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 
-const SPEED := 150.0
+const SPEED := 100.0
 
 var last_direction: Vector2 = Vector2.DOWN
 
@@ -11,11 +11,16 @@ var jump_timer := 0.0
 var jump_total := 0.0
 var jump_anim_name := ""
 
+func _ready() -> void:
+	set_character_by_name("greninja")
+
+
 func _physics_process(delta: float) -> void:
 	process_jump(delta)
 	process_movement()
 	process_animation()
 	move_and_slide()
+
 
 # ------------------------------------------------------------------------------
 # JUMP
@@ -158,3 +163,17 @@ func get_anim_name(prefix: String, dir: Vector2) -> String:
 		return prefix + "_up"
 
 	return prefix + "_down"
+
+var current_dir := "s"
+
+func set_character_by_name(char_name: String) -> void:
+	var animFrames_path := "res://assets/characters/pokemon/%s/sprites/anims/%s_frames.tres" % [char_name, char_name]
+	var animFrames := load(animFrames_path) as SpriteFrames
+	print("Loaded SpriteFrames at path: %s" % animFrames_path)
+
+	if animFrames == null:
+		push_error("Failed to load SpriteFrames at path: %s" % animFrames_path)
+		return
+	
+	animated_sprite_2d.sprite_frames = animFrames
+	

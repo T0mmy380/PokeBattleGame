@@ -1,4 +1,4 @@
-[gd_scene load_steps=185 format=3 uid="uid://dejbyeqj3niaa"]
+[gd_scene load_steps=186 format=3 uid="uid://dejbyeqj3niaa"]
 
 [ext_resource type="Texture2D" uid="uid://riu55mjx0aka" path="res://assets/characters/pokemon/greninja/sprites/Idle-Anim.png" id="1_agfs1"]
 [ext_resource type="Script" uid="uid://dfqqk0dqv8o2b" path="res://scripts/character_movement.gd" id="1_lrhn5"]
@@ -1376,16 +1376,23 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_my7n2"]
 size = Vector2(18, 9)
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_dp8ca"]
+
 [node name="Character" type="Node2D"]
 
 [node name="Greninja" type="CharacterBody2D" parent="."]
 script = ExtResource("1_lrhn5")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Greninja"]
+visible = false
 sprite_frames = SubResource("SpriteFrames_lrhn5")
+animation = &"hop_down_right"
 offset = Vector2(-0.5, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Greninja"]
 visible = false
 position = Vector2(0, 3.5)
 shape = SubResource("RectangleShape2D_my7n2")
+
+[node name="AnimatedSprite2D_Random" type="AnimatedSprite2D" parent="Greninja"]
+sprite_frames = SubResource("SpriteFrames_dp8ca")

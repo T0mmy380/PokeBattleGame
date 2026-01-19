@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3 uid="uid://pv8ygpbotrno"]
+
+[ext_resource type="Script" uid="uid://c1x46whiv73ob" path="res://scripts/character_select_ui.gd" id="1_l4heb"]
+
+[node name="Character Selector UI" type="Node2D"]
+script = ExtResource("1_l4heb")
+
+[node name="Window" type="Window" parent="."]
+oversampling_override = 1.0
+mode = 1
+title = "Character Select"
+initial_position = 1
+size = Vector2i(300, 300)
+visible = false
+
+[node name="Text Feild" type="LineEdit" parent="Window"]
+offset_left = 117.0
+offset_top = 40.0
+offset_right = 185.5625
+offset_bottom = 71.0
+text = "scolipede"
+
+[node name="Select Button" type="Button" parent="Window"]
+offset_left = 99.0
+offset_top = 181.0
+offset_right = 181.0
+offset_bottom = 227.0
+text = "Select"
+
+[connection signal="pressed" from="Window/Select Button" to="." method="_on_select_button_pressed"]

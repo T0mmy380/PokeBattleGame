@@ -30,7 +30,7 @@ func _physics_process(delta: float) -> void:
 
 func process_jump(delta: float) -> void:
 	# Start jump
-	if not is_jumping and Input.is_action_just_pressed("ui_accept"):
+	if not is_jumping and Input.is_action_just_pressed("jump"):
 		start_jump()
 
 	if is_jumping:
@@ -186,7 +186,7 @@ func set_character_by_name(char_name: String) -> void:
 func _unhandled_input(event):
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_ENTER:
-			character_selector_ui.popup.show()
+			character_selector_ui.popup.popup()
 
 
 

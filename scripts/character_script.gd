@@ -12,6 +12,9 @@ var jump_timer := 0.0
 var jump_total := 0.0
 var jump_anim_name := ""
 
+var form_name: String = "normal" 
+
+
 
 func _ready() -> void:
 	pass
@@ -170,7 +173,7 @@ var current_dir := "s"
 
 func set_character_by_name(char_name: String) -> void:
 	print("set_character_by_name called with: %s" % char_name)
-	var animFrames_path := "res://assets/characters/pokemon/%s/sprites/anims/%s_frames.tres" % [char_name, char_name]
+	var animFrames_path := "res://assets/characters/pokemon/%s/sprites/sprites_%s/anims/%s_frames.tres" % [char_name, form_name, char_name]
 	var animFrames := load(animFrames_path) as SpriteFrames
 	print("Loaded SpriteFrames at path: %s" % animFrames_path)
 

@@ -7,3 +7,19 @@
 .builds/
 *.exe
 *.pck
+
+# Ignore sprite PNG files and their imports
+assets/characters/pokemon/*/sprites/**/*.png
+assets/characters/pokemon/*/sprites/**/*.png.import
+
+# Ignore portrait PNG files and their imports
+assets/characters/pokemon/*/portraits/**/*.png
+assets/characters/pokemon/*/portraits/**/*.png.import
+
+# But keep animation data
+!assets/characters/pokemon/*/sprites/**/animdata.xml
+
+# Keep animation files in anims folder and animation resources
+!assets/characters/pokemon/anims/
+!assets/characters/pokemon/anims/**/*.json
+!assets/characters/pokemon/anims/**/*.tres

@@ -49,7 +49,7 @@ alignment = 1
 
 [node name="Text Feild" type="LineEdit" parent="Selector Window/UI/Selector Popup/VBoxContainer"]
 layout_mode = 2
-text = "greninja"
+text = "darkrai"
 alignment = 1
 
 [node name="Select Button" type="Button" parent="Selector Window/UI/Selector Popup/VBoxContainer"]

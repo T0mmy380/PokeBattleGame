@@ -7,3 +7,4 @@
 .builds/
 *.exe
 *.pck
+export_presets.cfg

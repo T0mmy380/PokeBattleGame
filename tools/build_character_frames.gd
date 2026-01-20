@@ -8,7 +8,7 @@ var form_name: String = "shiny"
 
 # CONFIG (set these)
 # number of charcters in folder
-var CHAR_NAME := "charizard"
+var CHAR_NAME := "darkrai"
 var BASE_PATH := "res://assets/characters/pokemon/"
 var POKE_PATH := BASE_PATH + "%s" % CHAR_NAME
 var SPRITES_PATH := POKE_PATH + "/sprites/"
@@ -171,14 +171,14 @@ func _run() -> void:
 				continue
 
 		# Save SpriteFrames
-		var frames_path := out_dir + "%s_%s_frames.tres" % [CHAR_NAME, form_name]
+		var frames_path := out_dir + "%s_frames.tres" % [CHAR_NAME]
 		var err := ResourceSaver.save(frames_res, frames_path)
 		if err != OK:
 			push_error("Failed to save frames: %s (err=%s)" % [frames_path, str(err)])
 			continue
 
 		# Save meta JSON
-		var meta_path := out_dir + "%s_%s_anim_meta.json" % [CHAR_NAME, form_name]
+		var meta_path := out_dir + "%s_anim_meta.json" % [CHAR_NAME]
 		var f := FileAccess.open(meta_path, FileAccess.WRITE)
 		if f == null:
 			push_warning("Could not write meta JSON: %s" % meta_path)

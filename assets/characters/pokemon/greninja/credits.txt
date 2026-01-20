@@ -1,7 +1,0 @@
-[normal]
-Emmuffin	https://twitter.com/Ernmuffin
-Jhony-Rex	https://www.deviantart.com/jhony-rex
-Soulja	https://twitter.com/OlSoulja
-
-[shiny]
-Emmuffin	https://twitter.com/Ernmuffin

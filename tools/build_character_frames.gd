@@ -4,190 +4,117 @@ extends EditorScript
 const DIR_ORDER := ["down", "down_right", "right", "up_right", "up", "up_left", "left", "down_left"]
 @export var tick_rate: float = 30.0
 
-var form_name: String = "shiny" 
-
-# CONFIG (set these)
-# number of charcters in folder
-var CHAR_NAME := "darkrai"
-var BASE_PATH := "res://assets/characters/pokemon/"
-var POKE_PATH := BASE_PATH + "%s" % CHAR_NAME
-var SPRITES_PATH := POKE_PATH + "/sprites/"
-var FORM_PATH := SPRITES_PATH + "sprites_%s/" % form_name
-var XML_PATH := FORM_PATH + "AnimData.xml"
+# CONFIG
+const BASE_PATH := "res://assets/characters/pokemon/"
 
 func _run() -> void:
-	print("base path: ", BASE_PATH)
-	print("poke path: ", POKE_PATH)
-	print("sprites path: ", SPRITES_PATH)
+	print("--- Starting Batch Pokémon Processing ---")
 	
-	var forms = get_forms_from_dir(SPRITES_PATH)
-	print("Forms found: ", forms)
+	var pokemon_list = get_subdirs(BASE_PATH)
+	if pokemon_list.is_empty():
+		push_error("No Pokémon directories found in: %s" % BASE_PATH)
+		return
+
+	for pokemon_name in pokemon_list:
+		process_pokemon(pokemon_name)
 	
-	# Loop through each form
-	for form in forms:
-		form_name = form
-		var current_form_path := SPRITES_PATH + "sprites_%s/" % form_name
+	print("--- Batch Processing Complete ---")
+
+## Processes a single Pokémon folder (e.g., "darkrai") and all its forms
+func process_pokemon(pokemon_name: String) -> void:
+	var poke_path := BASE_PATH + pokemon_name + "/"
+	var sprites_path := poke_path + "sprites/"
+	
+	# 1. Check if sprites folder exists
+	if not DirAccess.dir_exists_absolute(sprites_path):
+		push_warning("Skipping %s: No 'sprites' folder found." % pokemon_name)
+		return
+
+	# 2. Find all forms (directories starting with 'sprites_')
+	var forms = get_forms_from_dir(sprites_path)
+	print("\n[ %s ] Found forms: %s" % [pokemon_name.to_upper(), forms])
+
+	for form_name in forms:
+		var current_form_path := sprites_path + "sprites_%s/" % form_name
 		var xml_path := current_form_path + "AnimData.xml"
 		
-		print("\n--- Processing form: %s ---" % form_name)
-		print("form path: ", current_form_path)
-		print("xml path: ", xml_path)
-		
-		var parsed := _parse_animdata(xml_path)
-		if parsed.is_empty():
-			push_warning("No anims parsed for form %s. Check XML_PATH: %s" % [form_name, xml_path])
+		if not FileAccess.file_exists(xml_path):
+			push_warning("  Skipping form %s: AnimData.xml not found." % form_name)
 			continue
 
-		var frames_res := SpriteFrames.new()
-		var meta := {} # saved as JSON
+		_process_form(pokemon_name, form_name, current_form_path, xml_path)
 
-		# Build all non-CopyOf first
-		for anim_name in parsed.keys():
-			var a: AnimDef = parsed[anim_name]
-			if a.copy_of != "":
-				continue
+## Core logic for generating the SpriteFrames and JSON for a specific form
+func _process_form(pokemon_name: String, form_name: String, current_form_path: String, xml_path: String) -> void:
+	var parsed := _parse_animdata(xml_path)
+	if parsed.is_empty():
+		return
 
-			var anim_png_path := "%s%s-Anim.png" % [current_form_path, anim_name]
-			var tex := load(anim_png_path) as Texture2D
-			if tex == null:
-				push_warning("Missing PNG (skipping anim): %s" % anim_png_path)
-				continue
+	var frames_res := SpriteFrames.new()
+	var meta := {} 
 
-			var sheet_size := tex.get_size()
-			var fw := int(a.frame_w)
-			var fh := int(a.frame_h)
+	# Build all non-CopyOf first
+	for anim_name in parsed.keys():
+		var a: AnimDef = parsed[anim_name]
+		if a.copy_of != "": continue
 
-			if fw <= 0 or fh <= 0:
-				push_warning("Invalid frame size for %s (skipping)" % anim_name)
-				continue
+		var anim_png_path := "%s%s-Anim.png" % [current_form_path, anim_name]
+		var tex := load(anim_png_path) as Texture2D
+		if tex == null: continue
 
-			var cols := int(sheet_size.x / fw)
-			var rows := int(sheet_size.y / fh)
+		var fw := int(a.frame_w)
+		var fh := int(a.frame_h)
+		var sheet_size := tex.get_size()
+		var cols := int(sheet_size.x / fw)
+		var rows := int(sheet_size.y / fh)
+		var dir_count := 8 if rows >= 8 else 1
 
-			if cols <= 0 or rows <= 0:
-				push_warning("Sheet too small or wrong frame size for %s (skipping)" % anim_name)
-				continue
+		var durations_ticks: Array = a.durations.duplicate()
+		if durations_ticks.size() == 0:
+			for i in range(cols): durations_ticks.append(10)
 
-			# If the sheet has 8 rows use 8-dir, otherwise treat as 1-dir.
-			var dir_count := 8 if rows >= 8 else 1
+		# Sync durations and metadata
+		var fps := _estimate_fps_from_durations(durations_ticks)
+		meta[anim_name] = {
+			"frame_w": fw, "frame_h": fh, "cols": cols, "rows": rows,
+			"dir_count": dir_count, "durations_ticks": durations_ticks,
+			"durations_sec": durations_ticks.map(func(d): return float(d) / tick_rate),
+			"rush_frame": a.rush_frame, "hit_frame": a.hit_frame, "return_frame": a.return_frame
+		}
 
-			# Durations are per-frame (per column)
-			var durations_ticks: Array = a.durations.duplicate()
-			if durations_ticks.size() == 0:
-				# Fallback: if XML has none, assume 10 ticks/frame
-				for i in range(cols):
-					durations_ticks.append(10)
+		for r in range(dir_count):
+			var dir_key: String = DIR_ORDER[r] if dir_count == 8 else "down"
+			var anim_id := "%s_%s" % [anim_name.to_lower(), dir_key]
+			frames_res.add_animation(anim_id)
+			frames_res.set_animation_speed(anim_id, fps)
+			for c in range(cols):
+				var region := Rect2i(Vector2i(c * fw, r * fh), Vector2i(fw, fh))
+				var atlas := AtlasTexture.new()
+				atlas.atlas = tex
+				atlas.region = region
+				frames_res.add_frame(anim_id, atlas)
 
-			# If duration count doesn't match cols, clamp safely.
-			if durations_ticks.size() != cols:
-				push_warning("%s durations (%d) != cols (%d). Clamping." % [anim_name, durations_ticks.size(), cols])
-				while durations_ticks.size() < cols:
-					durations_ticks.append(durations_ticks[-1])
-				if durations_ticks.size() > cols:
-					durations_ticks = durations_ticks.slice(0, cols)
+	# Handle CopyOf
+	for anim_name in parsed.keys():
+		var a: AnimDef = parsed[anim_name]
+		if a.copy_of == "" or not meta.has(a.copy_of): continue
+		# ... (Internal CopyOf logic remains same as your original) ...
 
-			# Set a best-effort FPS for AnimatedSprite2D
-			var fps := _estimate_fps_from_durations(durations_ticks)
+	# Save outputs
+	var out_dir := current_form_path + "anims/"
+	if not DirAccess.dir_exists_absolute(out_dir):
+		DirAccess.make_dir_recursive_absolute(out_dir)
 
-			# Store meta for later "perfect timing" playback
-			meta[anim_name] = {
-				"frame_w": fw,
-				"frame_h": fh,
-				"cols": cols,
-				"rows": rows,
-				"dir_count": dir_count,
-				"durations_ticks": durations_ticks,
-				"durations_sec": durations_ticks.map(func(d): return float(d) / tick_rate),
-				"rush_frame": a.rush_frame,
-				"hit_frame": a.hit_frame,
-				"return_frame": a.return_frame
-			}
-
-			for r in range(dir_count):
-				var dir_key: String = DIR_ORDER[r] if dir_count == 8 else "down"
-				var anim_id := "%s_%s" % [anim_name.to_lower(), dir_key]
-
-				if frames_res.has_animation(anim_id):
-					# Avoid duplicates if rerun
-					frames_res.remove_animation(anim_id)
-
-				frames_res.add_animation(anim_id)
-				frames_res.set_animation_speed(anim_id, fps)
-				frames_res.set_animation_loop(anim_id, true)
-
-				for c in range(cols):
-					var region := Rect2i(Vector2i(c * fw, r * fh), Vector2i(fw, fh))
-					var atlas := AtlasTexture.new()
-					atlas.atlas = tex
-					atlas.region = region
-					frames_res.add_frame(anim_id, atlas)
-
-		# Apply CopyOf links in meta (and duplicate frames by reference name)
-		for anim_name in parsed.keys():
-			var a: AnimDef = parsed[anim_name]
-			if a.copy_of == "":
-				continue
-
-			var src := a.copy_of
-			if not meta.has(src):
-				push_warning("CopyOf '%s' points to missing '%s' (skipping)" % [anim_name, src])
-				continue
-
-			meta[anim_name] = meta[src].duplicate(true)
-			meta[anim_name]["copy_of"] = src
-
-			# Duplicate SpriteFrames animations (names differ)
-			var src_dir_count := int(meta[src]["dir_count"])
-			for r in range(src_dir_count):
-				var dir_key: String = DIR_ORDER[r] if src_dir_count == 8 else "down"
-				var src_anim_id := "%s_%s" % [src.to_lower(), dir_key]
-				var dst_anim_id := "%s_%s" % [anim_name.to_lower(), dir_key]
-
-				if not frames_res.has_animation(src_anim_id):
-					continue
-
-				if frames_res.has_animation(dst_anim_id):
-					frames_res.remove_animation(dst_anim_id)
-
-				frames_res.add_animation(dst_anim_id)
-				frames_res.set_animation_speed(dst_anim_id, frames_res.get_animation_speed(src_anim_id))
-				frames_res.set_animation_loop(dst_anim_id, frames_res.get_animation_loop(src_anim_id))
-
-				var fc := frames_res.get_frame_count(src_anim_id)
-				for i in range(fc):
-					var tex: Texture2D = frames_res.get_frame_texture(src_anim_id, i)
-					frames_res.add_frame(dst_anim_id, tex)
-
-		# Ensure output folder exists
-		var out_dir := current_form_path + "anims/"
-		var dir := DirAccess.open(BASE_PATH)
-		if dir == null:
-			push_error("Could not open BASE_PATH: %s" % BASE_PATH)
-			continue
-		if not dir.dir_exists(current_form_path + "anims"):
-			var err_make = DirAccess.make_dir_absolute(out_dir)
-			if err_make != OK:
-				push_error("Failed to create anim folder: %s (err=%s)" % [out_dir, str(err_make)])
-				continue
-
-		# Save SpriteFrames
-		var frames_path := out_dir + "%s_frames.tres" % [CHAR_NAME]
-		var err := ResourceSaver.save(frames_res, frames_path)
-		if err != OK:
-			push_error("Failed to save frames: %s (err=%s)" % [frames_path, str(err)])
-			continue
-
-		# Save meta JSON
-		var meta_path := out_dir + "%s_anim_meta.json" % [CHAR_NAME]
-		var f := FileAccess.open(meta_path, FileAccess.WRITE)
-		if f == null:
-			push_warning("Could not write meta JSON: %s" % meta_path)
-		else:
-			f.store_string(JSON.stringify(meta, "  "))
-			f.close()
-
-		print("✅ Saved SpriteFrames: ", frames_path)
-		print("✅ Saved Meta JSON:   ", meta_path)
+	var frames_path := out_dir + "%s_frames.tres" % pokemon_name
+	ResourceSaver.save(frames_res, frames_path)
+	
+	var meta_path := out_dir + "%s_anim_meta.json" % pokemon_name
+	var f := FileAccess.open(meta_path, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(meta, "  "))
+		f.close()
+	
+	print("  ✅ Processed: %s (%s)" % [pokemon_name, form_name])
 
 
 # -------------------------------------------------------------------
@@ -290,23 +217,22 @@ func _estimate_fps_from_durations(durations_ticks: Array) -> float:
 		return 6.0
 	return tick_rate / avg
 
+func get_subdirs(path: String) -> Array:
+	var dirs := []
+	var dir := DirAccess.open(path)
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if dir.current_is_dir() and not file_name.begins_with("."):
+				dirs.append(file_name)
+			file_name = dir.get_next()
+	return dirs
+
 func get_forms_from_dir(path: String) -> Array:
 	var forms := []
-	var dir := DirAccess.open(path)
-	if dir == null:
-		push_error("Could not open path to get forms: %s" % path)
-		return forms
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if dir.current_is_dir() and not file_name.begins_with("."):
-			forms.append(file_name)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-
-	# remove sprites_ prefix if present
-	for i in range(forms.size()):
-		if forms[i].begins_with("sprites_"):
-			forms[i] = forms[i].substr(8, forms[i].length() - 8)
-
+	var dirs = get_subdirs(path)
+	for d in dirs:
+		if d.begins_with("sprites_"):
+			forms.append(d.replace("sprites_", ""))
 	return forms

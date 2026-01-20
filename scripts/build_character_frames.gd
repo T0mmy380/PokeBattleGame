@@ -4,10 +4,12 @@ extends EditorScript
 const DIR_ORDER := ["down", "down_right", "right", "up_right", "up", "up_left", "left", "down_left"]
 @export var tick_rate: float = 30.0
 
+var form_name: String = "normal" 
+
 # CONFIG (set these)
-const CHAR_NAME := "greninja"
-const BASE_PATH := "res://assets/characters/pokemon/%s/sprites/" % CHAR_NAME
-const XML_PATH := BASE_PATH + "AnimData.xml"
+const CHAR_NAME := "krookodile"
+var BASE_PATH := "res://assets/characters/pokemon/%s/sprites/sprites_%s/" % [CHAR_NAME, form_name]
+var XML_PATH := BASE_PATH + "AnimData.xml"
 
 func _run() -> void:
 	var parsed := _parse_animdata(XML_PATH)

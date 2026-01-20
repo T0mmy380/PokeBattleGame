@@ -57,8 +57,8 @@ def run_final_scrape(target_list):
     
     # Identify the script's root directory
     script_root = os.path.dirname(os.path.abspath(__file__))
-    master_pokemon_dir = os.path.join(script_root, "pokemon")
-    os.makedirs(master_pokemon_dir, exist_ok=True)
+    project_root = os.path.dirname(script_root)  # Go up one level from tools/ to project root
+    master_pokemon_dir = os.path.join(project_root, "assets", "characters", "pokemon")
 
     try:
         for p_id, p_name in target_list:
@@ -133,13 +133,9 @@ if __name__ == "__main__":
     # Add your Pokémon list here
     POKEMON_LIST = [
         (1, "Bulbasaur"),
-        (2, "Ivysaur"),
         (3, "Venusaur"),
-        (4, "Charmander"),
-        (5, "Charmeleon"),
         (6, "Charizard"),
         (26, "Raichu"),
-        (146, "Moltres"),
         (386, "Deoxys"),
         (491, "Darkrai"),
         (553, "Krookodile"),

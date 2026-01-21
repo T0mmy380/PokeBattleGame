@@ -132,13 +132,11 @@ def run_final_scrape(target_list):
 if __name__ == "__main__":
     # Add your Pokémon list here
     POKEMON_LIST = [
-        (1, "Bulbasaur"),
-        (3, "Venusaur"),
-        (6, "Charizard"),
-        (26, "Raichu"),
-        (386, "Deoxys"),
-        (491, "Darkrai"),
-        (553, "Krookodile"),
-        (623, "Golurk"), 
+        (393, "Piplup"), (495, "Snivy"), (498, "Tepig"), (501, "Oshawott"), 
+        (650, "Chespin"), (653, "Fennekin"), (656, "Froakie"), (722, "Rowlet"), (725, "Litten"), 
+        (728, "Popplio"), (810, "Grookey"), (813, "Scorbunny"), (816, "Sobble"), (906, "Sprigatito"),
+        # Legends&Pseudos
+        (150, "Mewtwo"), (384, "Rayquaza"), (149, "Dragonite"), (248, "Tyranitar"), (445, "Garchomp"),
     ]
+    
     run_final_scrape(POKEMON_LIST)

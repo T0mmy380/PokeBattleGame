@@ -12,12 +12,9 @@ var jump_timer := 0.0
 var jump_total := 0.0
 var jump_anim_name := ""
 
-var form_name: String = "normal" 
-
-
-
 func _ready() -> void:
-	pass
+	print(split_name("eevee_normal"))
+	
 
 
 func _physics_process(delta: float) -> void:
@@ -172,8 +169,12 @@ func get_anim_name(prefix: String, dir: Vector2) -> String:
 var current_dir := "s"
 
 func set_character_by_name(char_name: String) -> void:
+	var full_char : Array = split_name(char_name)
+	var name = full_char[0]
+	var form = full_char[1]
+	
 	print("set_character_by_name called with: %s" % char_name)
-	var animFrames_path := "res://assets/characters/pokemon/%s/sprites/sprites_%s/anims/%s_frames.tres" % [char_name, form_name, char_name]
+	var animFrames_path := "res://assets/characters/pokemon/%s/sprites/sprites_%s/anims/%s_frames.tres" % [name, form, name]
 	var animFrames := load(animFrames_path) as SpriteFrames
 	print("Loaded SpriteFrames at path: %s" % animFrames_path)
 
@@ -192,15 +193,12 @@ func _unhandled_input(event):
 			character_selector_ui.popup.popup()
 
 
-
-		'''
-		if event.keycode == KEY_1:
-			set_character_by_name("greninja")
-			print("Character set to Greninja")
-		elif event.keycode == KEY_2:
-			set_character_by_name("golurk")
-			print("Character set to Golurk")
-		elif event.keycode == KEY_3:
-			set_character_by_name("scolipede")
-			print("Character set to Scolipede")
-		'''
+# ---------------------------------------------------------------------------------
+# HELPER
+# ---------------------------------------------------------------------------------
+func split_name(char_name: String) -> Array:
+	var parts := char_name.split("_")
+	if parts.size() >= 2:
+		return parts
+	else:
+		return [char_name, "normal"]

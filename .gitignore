@@ -14,4 +14,4 @@ assets/**/*.import
 
 !assets/**/anims/
 !assets/**/anims/**
-!assets/**/AnimData.xml
+assets/**/AnimData.xml

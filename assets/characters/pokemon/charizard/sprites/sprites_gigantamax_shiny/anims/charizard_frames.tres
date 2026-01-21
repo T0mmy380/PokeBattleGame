@@ -1,7 +1,7 @@
 [gd_resource type="SpriteFrames" load_steps=83 format=3 uid="uid://bj4r5d6mfl7fv"]
 
-[ext_resource type="Texture2D" uid="uid://d1jvck5o0bqbl" path="res://assets/characters/pokemon/charizard/sprites/sprites_gigantamax_shiny/Idle-Anim.png" id="1_yc6bo"]
-[ext_resource type="Texture2D" uid="uid://jabpinvswrfa" path="res://assets/characters/pokemon/charizard/sprites/sprites_gigantamax_shiny/Rotate-Anim.png" id="2_svmth"]
+[ext_resource type="Texture2D" uid="uid://bi434dq5lnygk" path="res://assets/characters/pokemon/charizard/sprites/sprites_gigantamax_shiny/Idle-Anim.png" id="1_yc6bo"]
+[ext_resource type="Texture2D" uid="uid://c5sd5ik8lg0w1" path="res://assets/characters/pokemon/charizard/sprites/sprites_gigantamax_shiny/Rotate-Anim.png" id="2_svmth"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1jfka"]
 atlas = ExtResource("1_yc6bo")

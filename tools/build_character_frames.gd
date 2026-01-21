@@ -1,11 +1,11 @@
 @tool
 extends EditorScript
 
-const DIR_ORDER := ["down", "down_right", "right", "up_right", "up", "up_left", "left", "down_left"]
 @export var tick_rate: float = 30.0
 
-# CONFIG
+const DIR_ORDER := ["down", "down_right", "right", "up_right", "up", "up_left", "left", "down_left"]
 const BASE_PATH := "res://assets/characters/pokemon/"
+
 
 func _run() -> void:
 	print("--- Starting Batch Pokémon Processing ---")
@@ -20,17 +20,18 @@ func _run() -> void:
 	
 	print("--- Batch Processing Complete ---")
 
-## Processes a single Pokémon folder (e.g., "darkrai") and all its forms
+
+## Processes a single Pokémon folder, and all its forms
 func process_pokemon(pokemon_name: String) -> void:
 	var poke_path := BASE_PATH + pokemon_name + "/"
 	var sprites_path := poke_path + "sprites/"
 	
-	# 1. Check if sprites folder exists
+	# Check if sprites folder exists
 	if not DirAccess.dir_exists_absolute(sprites_path):
 		push_warning("Skipping %s: No 'sprites' folder found." % pokemon_name)
 		return
 
-	# 2. Find all forms (directories starting with 'sprites_')
+	# Find all form directories
 	var forms = get_forms_from_dir(sprites_path)
 	print("\n[ %s ] Found forms: %s" % [pokemon_name.to_upper(), forms])
 
@@ -44,7 +45,8 @@ func process_pokemon(pokemon_name: String) -> void:
 
 		_process_form(pokemon_name, form_name, current_form_path, xml_path)
 
-## Core logic for generating the SpriteFrames and JSON for a specific form
+
+## Processes a single form of a Pokémon
 func _process_form(pokemon_name: String, form_name: String, current_form_path: String, xml_path: String) -> void:
 	var parsed := _parse_animdata(xml_path)
 	if parsed.is_empty():
@@ -98,7 +100,6 @@ func _process_form(pokemon_name: String, form_name: String, current_form_path: S
 	for anim_name in parsed.keys():
 		var a: AnimDef = parsed[anim_name]
 		if a.copy_of == "" or not meta.has(a.copy_of): continue
-		# ... (Internal CopyOf logic remains same as your original) ...
 
 	# Save outputs
 	var out_dir := current_form_path + "anims/"
@@ -116,10 +117,10 @@ func _process_form(pokemon_name: String, form_name: String, current_form_path: S
 	
 	print("  ✅ Processed: %s (%s)" % [pokemon_name, form_name])
 
-
 # -------------------------------------------------------------------
 # XML PARSING
 # -------------------------------------------------------------------
+
 class AnimDef:
 	var name := ""
 	var copy_of := ""
@@ -206,9 +207,9 @@ func _parse_animdata(path: String) -> Dictionary:
 # -------------------------------------------------------------------
 # HELPERS
 # -------------------------------------------------------------------
+
 func _estimate_fps_from_durations(durations_ticks: Array) -> float:
-	# AnimatedSprite2D only supports one FPS per animation.
-	# We estimate from average duration.
+	# Calculate average duration in ticks
 	var sum: float = 0.0
 	for d in durations_ticks:
 		sum += float(d)
@@ -216,6 +217,7 @@ func _estimate_fps_from_durations(durations_ticks: Array) -> float:
 	if avg <= 0.0:
 		return 6.0
 	return tick_rate / avg
+
 
 func get_subdirs(path: String) -> Array:
 	var dirs := []
@@ -228,6 +230,7 @@ func get_subdirs(path: String) -> Array:
 				dirs.append(file_name)
 			file_name = dir.get_next()
 	return dirs
+
 
 func get_forms_from_dir(path: String) -> Array:
 	var forms := []

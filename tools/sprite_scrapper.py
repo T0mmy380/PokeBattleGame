@@ -13,6 +13,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # --- Configuration ---
 BASE_ASSET_URL = "https://spriteserver.pmdcollab.org/assets"
+BATCH_SIZE = 3      # Process 5 Pokemon then rest
+REST_SECONDS = 15   # Duration of rest between batches
+
 
 def get_headless_browser():
     options = Options()
@@ -22,16 +25,18 @@ def get_headless_browser():
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
+
 def build_pmd_id(base_id, form_idx, is_shiny, is_female):
-    """Builds the 4-slot ID [Base]-[Form]-[Shiny]-[Gender]"""
+    # Builds the 4-slot ID [Base]-[Form]-[Shiny]-[Gender]
     parts = [str(base_id).zfill(4), str(form_idx).zfill(4), 
              "0001" if is_shiny else "0000", "0002" if is_female else "0000"]
     while len(parts) > 1 and parts[-1] == "0000":
         parts.pop()
     return "-".join(parts)
 
+
 def download_asset(session, url, target_path, is_zip=False):
-    """Handles the actual file writing and unzipping."""
+    # Handles the file writing and unzipping.
     try:
         r = session.get(url, stream=True, timeout=30)
         if r.status_code != 200: return False
@@ -51,6 +56,7 @@ def download_asset(session, url, target_path, is_zip=False):
     except:
         return False
 
+
 def run_final_scrape(target_list):
     driver = get_headless_browser()
     session = requests.Session()
@@ -61,8 +67,14 @@ def run_final_scrape(target_list):
     master_pokemon_dir = os.path.join(project_root, "assets", "characters", "pokemon")
 
     try:
-        for p_id, p_name in target_list:
-            print(f"\n[Processing] {p_name} (ID: {p_id})...")
+        for index, (p_id, p_name) in enumerate(target_list):
+            
+            # --- BATCH BUFFER LOGIC ---
+            if index > 0 and index % BATCH_SIZE == 0:
+                print(f"\n--- Batch reached. Resting for {REST_SECONDS} seconds... ---")
+                time.sleep(REST_SECONDS)
+
+            print(f"\n[Processing {index + 1}/{len(target_list)}] {p_name} (ID: {p_id})...")
             driver.get(f"https://sprites.pmdcollab.org/#/{str(p_id).zfill(4)}")
             
             wait = WebDriverWait(driver, 10)
@@ -84,7 +96,6 @@ def run_final_scrape(target_list):
             form_map = {"normal": 0}
             form_counter = 0
             
-            # Directory: [script_root]/pokemon/[name]
             poke_folder = os.path.join(master_pokemon_dir, p_name.lower())
             os.makedirs(poke_folder, exist_ok=True)
 
@@ -99,7 +110,6 @@ def run_final_scrape(target_list):
                 is_shiny = "shiny" in clean_label
                 is_female = "female" in clean_label
                 
-                # Logic to keep Slot 2 (Form Index) consistent across variants
                 root_name = clean_label.replace("shiny", "").replace("female", "").strip("_")
                 if not root_name or root_name == "normal": root_name = "normal"
 
@@ -110,13 +120,11 @@ def run_final_scrape(target_list):
                 idx = form_map[root_name]
                 final_id = build_pmd_id(p_id, idx, is_shiny, is_female)
 
-                # Path logic as requested
                 portrait_file = os.path.join(poke_folder, "portraits", f"portrait_{clean_label}.png")
                 sprite_folder = os.path.join(poke_folder, "sprites", f"sprites_{clean_label}")
 
                 print(f"  -> Building: {clean_label} (ID: {final_id})")
 
-                # Downloads
                 if download_asset(session, f"{BASE_ASSET_URL}/portrait-{final_id}.png", portrait_file):
                     print(f"     + Portrait Saved")
                 if download_asset(session, f"{BASE_ASSET_URL}/{final_id}/sprites.zip", sprite_folder, is_zip=True):
@@ -129,10 +137,13 @@ def run_final_scrape(target_list):
         driver.quit()
         print("\nAll tasks completed.")
 
+
 if __name__ == "__main__":
-    # Add your Pokémon list here
-    POKEMON_LIST = [
-        
-    ]
     
+    POKEMON_LIST = [
+        (906, "Sprigatito"), 
+        (909, "Fuecoco"), (912, "Quaxly"), (150, "Mewtwo"), (384, "Rayquaza"), (149, "Dragonite"), 
+        (248, "Tyranitar"), (445, "Garchomp"),
+    ]
+
     run_final_scrape(POKEMON_LIST)

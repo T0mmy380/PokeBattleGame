@@ -9,10 +9,4 @@
 *.pck
 export_presets.cfg
 
-assets/**/*.png
-assets/**/*.import
-
-!assets/**/anims/
-!assets/**/anims/**
-assets/**/AnimData.xml
-assets/**/credits.txt
+assets/

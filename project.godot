@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="PokeBattleGame"
-run/main_scene="uid://dki45g2fj6ep"
+run/main_scene="uid://c65goq8yhtm8y"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 

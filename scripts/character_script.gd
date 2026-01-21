@@ -3,7 +3,7 @@ extends CharacterBody2D
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var character_selector_ui: Node2D = $"../Character Selector UI"
 
-const SPEED := 100.0
+const speed := 100.0
 
 var last_direction: Vector2 = Vector2.DOWN
 
@@ -12,10 +12,9 @@ var jump_timer := 0.0
 var jump_total := 0.0
 var jump_anim_name := ""
 
-func _ready() -> void:
-	print(split_name("eevee_normal"))
-	
-
+# ------------------------------------------------------------------------------
+# PHYSICS PROCESS
+# ------------------------------------------------------------------------------
 
 func _physics_process(delta: float) -> void:
 	process_jump(delta)
@@ -47,6 +46,7 @@ func process_jump(delta: float) -> void:
 		if jump_timer <= 0.0:
 			end_jump()
 
+
 func start_jump() -> void:
 	is_jumping = true
 
@@ -63,6 +63,7 @@ func start_jump() -> void:
 
 	jump_total = get_anim_length_seconds(jump_anim_name)
 	jump_timer = jump_total
+
 
 func switch_jump_anim_preserve_progress(new_anim: String) -> void:
 	# Progress through jump (0..1)
@@ -88,6 +89,7 @@ func switch_jump_anim_preserve_progress(new_anim: String) -> void:
 	animated_sprite_2d.frame = clamp(frame_i, 0, frames - 1)
 	animated_sprite_2d.frame_progress = clamp(frame_f - float(frame_i), 0.0, 1.0)
 
+
 func end_jump() -> void:
 	is_jumping = false
 
@@ -96,6 +98,7 @@ func end_jump() -> void:
 	animated_sprite_2d.frame = max(frames - 1, 0)
 	animated_sprite_2d.frame_progress = 0.0
 	animated_sprite_2d.stop()
+
 
 func get_anim_length_seconds(anim_name: String) -> float:
 	if animated_sprite_2d.sprite_frames == null:
@@ -115,14 +118,15 @@ func get_anim_length_seconds(anim_name: String) -> float:
 # ------------------------------------------------------------------------------
 
 func process_movement() -> void:
-	# Allow movement during jump (change if you want it locked)
+	# Allow movement during jump 
 	var direction := Input.get_vector("left", "right", "up", "down")
 
 	if direction != Vector2.ZERO:
-		velocity = direction.normalized() * SPEED
+		velocity = direction.normalized() * speed
 		last_direction = direction
 	else:
 		velocity = Vector2.ZERO
+
 
 func process_animation() -> void:
 	# Jump has priority; do not play walk/idle during jump
@@ -166,7 +170,9 @@ func get_anim_name(prefix: String, dir: Vector2) -> String:
 
 	return prefix + "_down"
 
-var current_dir := "s"
+# ------------------------------------------------------------------------------
+# CHARACTER SELECTOR
+# ------------------------------------------------------------------------------
 
 func set_character_by_name(char_name: String) -> void:
 	var full_char : Array = split_name(char_name)
@@ -183,19 +189,17 @@ func set_character_by_name(char_name: String) -> void:
 		return
 	
 	animated_sprite_2d.sprite_frames = animFrames
-	
-# ------------------------------------------------------------------------------
-# CHARACTER SELECTOR
-# ------------------------------------------------------------------------------
+
+
 func _unhandled_input(event):
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_ENTER:
 			character_selector_ui.popup.popup()
 
-
 # ---------------------------------------------------------------------------------
 # HELPER
 # ---------------------------------------------------------------------------------
+
 func split_name(char_name: String) -> Array:
 	var parts := char_name.split("_")
 	if parts.size() >= 2:

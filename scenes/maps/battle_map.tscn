@@ -27,6 +27,7 @@ y_sort_origin = 1
 
 [node name="Enemy" parent="TileMap" instance=ExtResource("3_w6jaq")]
 position = Vector2(815.5, -946)
+scale = Vector2(1.5, 1.5)
 
 [node name="Character" parent="TileMap" instance=ExtResource("2_1it3o")]
 position = Vector2(1263.5, -754)

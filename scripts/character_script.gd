@@ -194,9 +194,17 @@ func update_facing_from_input() -> void:
 	if velocity != Vector2.ZERO:
 		return
 
-	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var x := Input.get_axis("left", "right")
+	var y := Input.get_axis("up", "down")
+	var input_dir := Vector2.ZERO
+	# Enforce single-axis facing (no diagonals).
+	if x != 0.0:
+		input_dir = Vector2(sign(x), 0)
+	elif y != 0.0:
+		input_dir = Vector2(0, sign(y))
+
 	if input_dir != Vector2.ZERO:
-		last_direction = input_dir.normalized()
+		last_direction = input_dir
 
 func get_anim_name(prefix: String, dir: Vector2) -> String:
 	# stable 8-dir resolution (reduces diagonal flicker)

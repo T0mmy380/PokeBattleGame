@@ -9,6 +9,7 @@ extends CharacterBody2D
 
 const speed := 100.0
 const ARRIVE_DISTANCE := 2.0 # Final snap tolerance in pixels.
+const ATTACK_FLASH_SECONDS := 0.2
 
 var last_direction: Vector2 = Vector2.DOWN
 
@@ -29,6 +30,7 @@ var has_selected := false
 var path_line: Line2D
 var hover_sprite: Sprite2D
 var selected_sprite: Sprite2D
+var attack_sprite: Sprite2D
 
 # ------------------------------------------------------------------------------
 # PHYSICS PROCESS
@@ -37,6 +39,7 @@ var selected_sprite: Sprite2D
 func _physics_process(delta: float) -> void:
 	process_jump(delta)
 	process_movement(delta)
+	update_facing_from_input()
 	process_animation()
 	move_and_slide()
 	update_path_line()
@@ -61,7 +64,7 @@ func process_jump(delta: float) -> void:
 		# While jumping: if direction changes, switch jump anim to match
 		var dir := velocity.normalized()
 		if dir != Vector2.ZERO:
-			last_direction = dir
+			last_direction = snap_direction_cardinal(dir)
 			var desired := get_anim_name("hop", dir)
 			if desired != jump_anim_name:
 				switch_jump_anim_preserve_progress(desired)
@@ -79,7 +82,7 @@ func start_jump() -> void:
 	if dir == Vector2.ZERO:
 		dir = last_direction
 	else:
-		last_direction = dir
+		last_direction = snap_direction_cardinal(dir)
 
 	jump_anim_name = get_anim_name("hop", dir)
 
@@ -165,7 +168,7 @@ func process_movement(delta: float) -> void:
 
 	if to_target != Vector2.ZERO:
 		velocity = to_target.normalized() * speed
-		last_direction = velocity.normalized()
+		last_direction = snap_direction_cardinal(velocity)
 	else:
 		velocity = Vector2.ZERO
 
@@ -183,6 +186,17 @@ func process_animation() -> void:
 # ------------------------------------------------------------------------------
 # ANIMATION NAME HELPERS
 # ------------------------------------------------------------------------------
+
+func update_facing_from_input() -> void:
+	# Allow turning in place when not moving.
+	if is_jumping:
+		return
+	if velocity != Vector2.ZERO:
+		return
+
+	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	if input_dir != Vector2.ZERO:
+		last_direction = input_dir.normalized()
 
 func get_anim_name(prefix: String, dir: Vector2) -> String:
 	# stable 8-dir resolution (reduces diagonal flicker)
@@ -239,6 +253,11 @@ func _unhandled_input(event):
 			character_selector_ui.popup.popup()
 			return
 
+		# Simple melee attack (1 tile in front).
+		if event.is_action_pressed("attack"):
+			perform_attack()
+			return
+
 	if nav_layer == null:
 		return
 
@@ -252,6 +271,31 @@ func _unhandled_input(event):
 			set_selected_cell(click_cell)
 			set_path_to(click_cell)
 
+# ------------------------------------------------------------------------------
+# ATTACK
+# ------------------------------------------------------------------------------
+
+func perform_attack() -> void:
+	var facing_step := get_facing_step()
+	var origin_cell := world_to_cell(global_position)
+	var target_cell := origin_cell + facing_step
+
+	if not is_cell_in_bounds(target_cell):
+		return
+
+	# Flash the targeted tile in red.
+	if attack_sprite != null:
+		attack_sprite.visible = true
+		attack_sprite.position = cell_to_tilemap_local_center(target_cell)
+		_flash_attack_tile()
+
+
+func _flash_attack_tile() -> void:
+	await get_tree().create_timer(ATTACK_FLASH_SECONDS).timeout
+	if attack_sprite != null:
+		attack_sprite.visible = false
+
+
 # ---------------------------------------------------------------------------------
 # HELPER
 # ---------------------------------------------------------------------------------
@@ -263,6 +307,24 @@ func split_name(char_name: String) -> Array:
 	else:
 		return [char_name, "normal"]
 
+func get_facing_step() -> Vector2i:
+	# 4-dir step based on last known facing.
+	var dir := snap_direction_cardinal(last_direction)
+
+	if dir == Vector2.ZERO:
+		return Vector2i(0, 1)
+
+	return Vector2i(int(dir.x), int(dir.y))
+
+func snap_direction_cardinal(dir: Vector2) -> Vector2:
+	# Resolve to 4 directions only (no diagonals).
+	if dir == Vector2.ZERO:
+		return Vector2.ZERO
+
+	if abs(dir.x) >= abs(dir.y):
+		return Vector2(sign(dir.x), 0)
+	return Vector2(0, sign(dir.y))
+
 
 func setup_pathfinding() -> void:
 	# Build the A* grid from the ground + wall layers.
@@ -271,7 +333,7 @@ func setup_pathfinding() -> void:
 
 	astar_grid = AStarGrid2D.new()
 	astar_grid.cell_size = nav_layer.tile_set.tile_size
-	astar_grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ALWAYS
+	astar_grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
 
 	var used_rect := nav_layer.get_used_rect()
 	if used_rect == Rect2i():
@@ -326,9 +388,18 @@ func setup_click_move_visuals() -> void:
 	selected_sprite.z_index = 3
 	viz.call_deferred("add_child", selected_sprite)
 
+	attack_sprite = Sprite2D.new()
+	attack_sprite.name = "AttackTile"
+	attack_sprite.texture = tex
+	attack_sprite.modulate = Color(1.0, 0.1, 0.1, 0.4)
+	attack_sprite.visible = false
+	attack_sprite.z_index = 4
+	viz.call_deferred("add_child", attack_sprite)
+
 	var tile_size := get_tile_size()
 	hover_sprite.scale = tile_size
 	selected_sprite.scale = tile_size
+	attack_sprite.scale = tile_size
 
 
 func update_hover_cell(world_pos: Vector2) -> void:

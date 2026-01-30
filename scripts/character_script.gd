@@ -239,6 +239,7 @@ func get_anim_name(prefix: String, dir: Vector2) -> String:
 # ------------------------------------------------------------------------------
 
 func set_character_by_name(char_name: String) -> void:
+	print("set_character_by_name called with: %s" % char_name)
 	var full_char : Array = split_name(char_name)
 	var c_name = full_char[0]
 	var form = full_char[1]
@@ -258,7 +259,7 @@ func set_character_by_name(char_name: String) -> void:
 func _unhandled_input(event):
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_ENTER:
-			character_selector_ui.popup.popup()
+			character_selector_ui.popup.show()
 			return
 
 		# Simple melee attack (1 tile in front).

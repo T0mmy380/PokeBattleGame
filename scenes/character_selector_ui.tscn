@@ -1,31 +1,39 @@
-[gd_scene load_steps=2 format=3 uid="uid://pv8ygpbotrno"]
+[gd_scene load_steps=14 format=3 uid="uid://pv8ygpbotrno"]
 
 [ext_resource type="Script" uid="uid://c1x46whiv73ob" path="res://scripts/character_select_ui.gd" id="1_l4heb"]
+[ext_resource type="Texture2D" uid="uid://bcdxqve8j18af" path="res://assets/characters/pokemon/greninja/portraits/portrait_normal.png" id="2_yge0g"]
+[ext_resource type="Texture2D" uid="uid://dkhmvjvoxu8r5" path="res://assets/characters/pokemon/treecko/portraits/portrait_normal.png" id="3_1ki5o"]
+[ext_resource type="Texture2D" uid="uid://bxcqq27wdxfk" path="res://assets/characters/pokemon/litten/portraits/portrait_normal.png" id="4_ogkis"]
+[ext_resource type="Texture2D" uid="uid://bd8kh74mlr15i" path="res://assets/characters/pokemon/charizard/portraits/portrait_normal.png" id="6_1ki5o"]
+[ext_resource type="Texture2D" uid="uid://d2qq3ablvk8r3" path="res://assets/characters/pokemon/eevee/portraits/portrait_normal.png" id="6_ogkis"]
+[ext_resource type="Texture2D" uid="uid://sdpt565wqofj" path="res://assets/characters/pokemon/mewtwo/portraits/portrait_normal.png" id="7_l0nr0"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cg404"]
+atlas = ExtResource("2_yge0g")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ogkis"]
+atlas = ExtResource("4_ogkis")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7elwi"]
+atlas = ExtResource("7_l0nr0")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vlefo"]
+atlas = ExtResource("6_ogkis")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l0nr0"]
+atlas = ExtResource("6_1ki5o")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_scy0b"]
+atlas = ExtResource("3_1ki5o")
+region = Rect2(0, 0, 40, 40)
 
 [node name="Character Selector UI" type="Node2D"]
 script = ExtResource("1_l4heb")
-
-[node name="Window" type="Window" parent="."]
-oversampling_override = 1.0
-mode = 1
-title = "Character Select"
-initial_position = 1
-size = Vector2i(300, 300)
-visible = false
-
-[node name="Text Feild" type="LineEdit" parent="Window"]
-offset_left = 117.0
-offset_top = 40.0
-offset_right = 185.5625
-offset_bottom = 71.0
-text = "scolipede"
-
-[node name="Select Button" type="Button" parent="Window"]
-offset_left = 99.0
-offset_top = 181.0
-offset_right = 181.0
-offset_bottom = 227.0
-text = "Select"
 
 [node name="Selector Window" type="Control" parent="."]
 layout_mode = 3
@@ -35,26 +43,61 @@ offset_bottom = 40.0
 
 [node name="UI" type="CanvasLayer" parent="Selector Window"]
 
-[node name="Selector Popup" type="PopupPanel" parent="Selector Window/UI"]
-oversampling_override = 1.0
-initial_position = 1
-size = Vector2i(210, 84)
+[node name="Panel" type="Panel" parent="Selector Window/UI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -92.0
+offset_top = -68.0
+offset_bottom = 68.0
+grow_horizontal = 0
+grow_vertical = 2
+scale = Vector2(2, 2)
+pivot_offset = Vector2(92, 0)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Selector Window/UI/Selector Popup"]
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 206.0
-offset_bottom = 80.0
-alignment = 1
+[node name="GridPopup" type="MarginContainer" parent="Selector Window/UI/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -42.0
+offset_top = -64.0
+offset_right = 42.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Text Feild" type="LineEdit" parent="Selector Window/UI/Selector Popup/VBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="Selector Window/UI/Panel/GridPopup"]
 layout_mode = 2
-text = "eevee_normal"
-alignment = 1
 
-[node name="Select Button" type="Button" parent="Selector Window/UI/Selector Popup/VBoxContainer"]
+[node name="GridContainer" type="GridContainer" parent="Selector Window/UI/Panel/GridPopup/PanelContainer"]
 layout_mode = 2
-text = "SELECT"
+columns = 2
 
-[connection signal="pressed" from="Window/Select Button" to="." method="_on_select_button_pressed"]
-[connection signal="pressed" from="Selector Window/UI/Selector Popup/VBoxContainer/Select Button" to="." method="_on_select_button_pressed"]
+[node name="greninja_normal" type="TextureButton" parent="Selector Window/UI/Panel/GridPopup/PanelContainer/GridContainer"]
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_cg404")
+
+[node name="litten_normal" type="TextureButton" parent="Selector Window/UI/Panel/GridPopup/PanelContainer/GridContainer"]
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_ogkis")
+
+[node name="mewtwo_normal" type="TextureButton" parent="Selector Window/UI/Panel/GridPopup/PanelContainer/GridContainer"]
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_7elwi")
+
+[node name="eevee_normal" type="TextureButton" parent="Selector Window/UI/Panel/GridPopup/PanelContainer/GridContainer"]
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_vlefo")
+
+[node name="charizard_normal" type="TextureButton" parent="Selector Window/UI/Panel/GridPopup/PanelContainer/GridContainer"]
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l0nr0")
+
+[node name="treeko_normal" type="TextureButton" parent="Selector Window/UI/Panel/GridPopup/PanelContainer/GridContainer"]
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_scy0b")
